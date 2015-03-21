@@ -1,0 +1,142 @@
+import java.util.Iterator;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+/**
+ * Creates a record of the number of times each word appears in given text file.
+ * @author stephanie2694
+ *
+ */
+public class FrequencyList 
+{
+	/**
+	 * Stores the table of word frequencies, with each 
+	 * word being the key and its count being the value.
+	 * 
+	 * Using SortedMap interface to get sorted keys for free.
+	 */
+	private SortedMap<String, Integer> table;
+	
+	/**
+	 * Counts the number of unique words in the table.
+	 */
+	private int size;
+	
+	/**
+	 * Contructor.
+	 */
+	public FrequencyList()
+	{
+		//call super.
+		super();
+		//use TreeMap implementation of SortedMap.
+		table = new TreeMap<String, Integer>();
+		//initialize size to 0
+		size = 0;
+	}
+	
+	/**
+	 * 
+	 * @param word
+	 */
+	public void add( String word )
+	{
+		if ( !table.containsKey( word ) )
+		{
+			//create a new key with value 1.
+			table.put( word, 1 );
+			//increment size.
+			size++;
+		}
+		else
+		{
+			//we've seen this word before so update its current map value.
+			updateValue( word );
+		}
+	}
+	
+	/**
+	 * Returns true if a word is already in the set of keys.
+	 * @param word
+	 * @return
+	 */
+	/*private boolean contains( String word )
+	{
+		
+		
+		return true;
+	}*/
+	
+	/**
+	 * Updates the value of a key already existing in the table.
+	 * @param key
+	 */
+	private void updateValue( String key )
+	{
+		//get the existing key and update its value.
+		table.put( key, table.get(key) + 1 );
+	}
+	
+	/**
+	 * Getter function for the size property.
+	 * @return
+	 */
+	public int getSize()
+	{
+		return size;
+	}
+	
+	/**
+	 * Returns String representation of the table.
+	 * Order of keys is alphabetical.
+	 */
+	public String toString()
+	{
+		String wordCount = "";
+		
+		//get keySet
+		Set<String> keys = table.keySet();
+		
+		
+		//iterate over keys alphabetically
+		for( String key : keys )
+		{
+			wordCount += key + ":" + "\t" + Integer.toString( table.get( key ) ) + "\n";
+			//System.out.println( key );
+		}		
+		
+		return wordCount;
+	}
+	
+	/**
+	 * Returns the iterator for the keys. Keys are 
+	 * automatically in alphabetical order.
+	 * @return
+	 */
+	public Iterator<String> iterator()
+	{
+		return table.keySet().iterator();
+	}
+	
+	/**
+	 * Returns the iterator for the keys. Keys are 
+	 * automatically in alphabetical order.
+	 * @return
+	 */
+	public Set<String> keys()
+	{
+		return table.keySet();
+	}
+	
+	/**
+	 * Get the value associated with the key. For writing the output file.
+	 * @param key
+	 * @return
+	 */
+	public Integer getVal( String key )
+	{
+		return table.get( key );
+	}
+	
+}
