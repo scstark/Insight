@@ -1,9 +1,5 @@
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
@@ -13,7 +9,16 @@ import java.nio.file.Paths;
 import java.util.PriorityQueue;
 import java.util.Scanner;
 
-
+/**
+ * Reads the files in the input directory, 
+ * computes the running median value of words 
+ * in a line after reading each line,
+ * and saves the word frequencies to file.
+ * All I/O happens in this class.
+ * Contains main method.
+ * @author Stephanie Stark (GitHub: scstark)
+ *
+ */
 public class RunningMedian 
 {
 	/**
@@ -41,22 +46,25 @@ public class RunningMedian
 	 */
 	public RunningMedian()
 	{
+		//initialize sample size
 		n = 0;
-		
+		//create new priority queues to hold the integers
 		left = new PriorityQueue<Integer>();
 		right = new PriorityQueue<Integer>();
-		
+		//read the input files
 		readInput();
 	}
 	
 	/**
-	 * 
+	 * Reads the input from input directory and saves the running median to file.
 	 */
 	public void readInput()
 	{
 		//for each file in the directory "wc_input".
 		Path dir = Paths.get( "wc_input" );
-		
+		//create the directory and file for the output file here since
+		//for this problem it is better to continuously write the file as
+		//the running median is computed.
 		Path output = createOutputDir();
 		
 		Charset charset = Charset.forName("UTF-8");
@@ -64,23 +72,22 @@ public class RunningMedian
 		try ( BufferedWriter writer = Files.newBufferedWriter( output, charset ) )
 		{
 			//filter files in input directory by txt extension.
+			//iterator automatically gives files by their natural ordering, aka alphabetical
 			try ( DirectoryStream<Path> stream = Files.newDirectoryStream( dir, "*.txt" ) ) 
 			{
 			    //for each file in the filtered stream
 				for (Path file: stream) 
 			    {
-					
-			      	//try to scan a file					
-					//try
-					//{
-					Scanner sc = new Scanner( file );
-					System.out.println( "Reading file " + file.getFileName() );
+					//create a scanner for the source file
+			      	Scanner sc = new Scanner( file );
+					//inform user that the file is being read
+			      	System.out.println( "Reading file " + file.getFileName() );
 					//while there are still tokens to be read in the file
 					while( sc.hasNextLine() )
 					{	
 						//read the line
 						String line = sc.nextLine();
-						n++;
+						n++;//increment sample size
 						
 						//count each word on the line.
 						Scanner sc2 = new Scanner( line );
@@ -90,14 +97,14 @@ public class RunningMedian
 						while( sc2.hasNext() )
 						{
 							sc2.next();
-							count++;
+							count++; //count the number of words in the line.
 						}
 						
 						//add the total number of words
 						add( count );
 						//write the running median to file
 						writer.write( Double.toString( getRM() ) );
-						
+						//create a new line
 						writer.newLine();
 					
 						//System.out.println( "Writing " + Double.toString( getRM() ) );
@@ -111,30 +118,17 @@ public class RunningMedian
 		    // IOException can never be thrown by the iteration.
 		    // In this snippet, it can only be thrown by newDirectoryStream.
 		    System.err.println(x);
+		    
+		    x.printStackTrace();
 		}
-						
-
-		//System.out.println( "RM: " + getRM() );
-
 	}
 	
 	/**
-	 * Write the Running Median to file.
+	 * Create the output directory if it doens't exist yet 
+	 * as well as the text file to store the output and 
+	 * return the path to the output text file.
+	 * @return
 	 */
-	/*private void writeRM( BufferedWriter writer )
-	{
-		try 
-		{
-			
-		} 
-		catch (IOException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	
-	}*/
-	
 	private Path createOutputDir()
 	{
 		try
@@ -148,20 +142,15 @@ public class RunningMedian
 			
 			Path output = Files.createFile( Paths.get( "wc_output/med_result.txt" ) );
 					
-			
-
-			//try ( BufferedWriter writer = Files.newBufferedWriter( output, charset ) ) 
-			//{
 			return output;
-			//}
+			
 		}
-		catch (IOException e )
+		catch (IOException e ) //this should never get thrown
 		{
 			e.printStackTrace();
-			
-	
+
 		}
-		System.out.println( "Returning null FileWriter." );
+		//System.out.println( "Returning null Path." );
 		return null;
 	}
 	
@@ -178,14 +167,9 @@ public class RunningMedian
 		//if n is even
 		if ( n % 2 == 0 )
 		{
-			//System.out.println( "n is even" );
+			//must cast the rM in order to obtain a decimal value if the sum of the numerator is odd
 			rM = (double) ( -left.peek() + ( right.peek() ) ) / 2;
-			//System.out.println("left root: " + -left.peek() );
-			//System.out.println("right root: " + right.peek() );
-			//System.out.println("mean: " + rM );
 
-			
-			//System.out.println( "even rm is " + left.peek);
 		}
 		//if n is odd
 		else
@@ -199,12 +183,6 @@ public class RunningMedian
 				rM = right.peek();
 			}
 		}
-		
-		//System.out.println("# of lines: " + n + "\n" 
-		//		+ "Size of Left: " + left.size() + "\n" 
-		//		+ "Size of Right: " + right.size() );
-				//+"\n" + "RM : " + rM );
-		
 		
 		return rM;
 	}
@@ -285,6 +263,10 @@ public class RunningMedian
 		//otherwise do nothing.
 	}
 	
+	/**
+	 * Start the program! Takes no command line arguments.
+	 * @param args
+	 */
 	public static void main( String[] args )
 	{
 			

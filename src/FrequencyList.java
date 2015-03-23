@@ -1,5 +1,4 @@
 import java.util.Iterator;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -17,11 +16,7 @@ public class FrequencyList
 	 * Using SortedMap interface to get sorted keys for free.
 	 */
 	private SortedMap<String, Integer> table;
-	
-	/**
-	 * Counts the number of unique words in the table.
-	 */
-	private int size;
+
 	
 	/**
 	 * Contructor.
@@ -32,12 +27,11 @@ public class FrequencyList
 		super();
 		//use TreeMap implementation of SortedMap.
 		table = new TreeMap<String, Integer>();
-		//initialize size to 0
-		size = 0;
+
 	}
 	
 	/**
-	 * 
+	 * Add a word to the table.
 	 * @param word
 	 */
 	public void add( String word )
@@ -47,10 +41,6 @@ public class FrequencyList
 			
 			//create a new key with value 1.
 			table.put( word, 1 );
-			//increment size.
-			size++;
-			
-
 		}
 		else
 		{
@@ -71,45 +61,13 @@ public class FrequencyList
 	}
 	
 	/**
-	 * Getter function for the size property.
-	 * @return
-	 */
-	public int getSize()
-	{
-		return size;
-	}
-	
-	/**
-	 * Returns String representation of the table.
-	 * Order of keys is alphabetical.
-	 */
-	public String toString()
-	{
-		String wordCount = "";
-		
-		//get keySet
-		Set<String> keys = table.keySet();
-		
-		
-		//iterate over keys alphabetically
-		for( String key : keys )
-		{
-			wordCount += key + ":" + "\t" + Integer.toString( table.get( key ) ) + "\n";
-			//System.out.println( key );
-		}		
-		
-		return wordCount;
-	}
-	
-	/**
 	 * Returns the iterator for the keys. Keys are 
 	 * automatically in alphabetical order.
 	 * @return
 	 */
 	public Iterator<String> iterator()
 	{
-		System.out.println( "Last key is: " + table.lastKey() );
-		
+	
 		return table.keySet().iterator();
 	}
 

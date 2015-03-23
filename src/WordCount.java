@@ -1,32 +1,27 @@
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Scanner;
-import java.util.Set;
 import java.nio.charset.Charset;
 import java.nio.charset.UnmappableCharacterException;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-//import java.nio.file.Path;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
+ * Reads the files in the input directory, counts them,
+ * and saves the word frequencies to file.
  * All I/O happens in this class.
  * Contains main method.
- * @author stephanie2694
+ * @author Stephanie Stark (GitHub: scstark)
  *
  */
 public class WordCount 
 {
 	/**
-	 * Instance of the frequency list to
+	 * Instance of the frequency list to store the words with their counts.
 	 */
 	private FrequencyList list;
 	
@@ -37,108 +32,81 @@ public class WordCount
 	{
 		list = new FrequencyList();
 		
+		readInput();
 	}
 	
 	/**
-	 * I/O happens here.
+	 * I/O happens here. Reads the input and adds each word to the FrequencyList.
 	 */
 	public void readInput()
 	{
-		//for each file in the directory "wc_input".
+		//get the path to input directory.
 		Path dir = Paths.get( "wc_input" );
-		
-		//filter files in input directory by txt extension.
-		try ( DirectoryStream<Path> stream = Files.newDirectoryStream( dir, "*.txt" ) ) 
+		//if the file exists and is a directory.
+		if( dir.toFile().exists() && dir.toFile().isDirectory() )
 		{
-		    //for each file in the filtered stream
-			for (Path file: stream) 
-		    {
-				
-		      	//try to scan a file					
-				try
-				{
+			//filter files in input directory by txt extension.
+			//get the iterator associated with this directory stream
+			//if there are no .txt files in the directory the output document will be blank.
+			try ( DirectoryStream<Path> stream = Files.newDirectoryStream( dir, "*.txt" ) ) 
+			{
+			    //for each file in the filtered stream
+				for (Path file: stream) 
+			    {
+					// try to scan a file
 					Scanner sc = new Scanner( file );
+					//inform the user which files are being read.
 					System.out.println( "Reading file " + file.getFileName() );
 					//while there are still tokens to be read in the file
 					while( sc.hasNext() )
 					{
 					
 						String word = sc.next();
-						//strip punctuation from token, aka remove all punctuation
-						//characters besides hyphens and apostrophes.
-						//word = word.replaceAll("[^\\p{L} ]","");
+						//strip punctuation from token
 						word = word.replaceAll( "[^\\P{P}]+", "" );
-						//word = word.replaceAll( "[^[:ascii:]]", "" );
+						
 						//converting to lower case for uniformity and
 						//to ensure capitalization does not skew word count.
+						word = word.toLowerCase();
 						//also ensuring empty string is not present.
 						if ( word.length() > 0 )
 						{
-							list.add( word.toLowerCase() );
+							//add the word to the list
+							list.add( word );
 						}
 						
 					}
 				}
-				catch( FileNotFoundException e )
-				{
-					//e.printStackTrace();
-					//inform user of exception
-					System.out.println("File " + file.getFileName() +
-							" not found. \nContinuing on to next file.");
-					//move on to next file
-					continue;
-				}
-					
+				//after all files are read and counted on the list:
+				//save the output to file
+				saveOutput();
+				
 			}
-		    
-		   
-				
-				
+			catch ( DirectoryIteratorException | IOException x) 
+			{
+			    // IOException is from the Scanner. It will not be thrown in this implementation
+				//because of the directory stream's filter.
+			    // The only exception that can make it down here is the DirectoryIteratorException.
+			   System.err.println(x);
+			  	    
+			}
 		}
-		catch ( IOException|DirectoryIteratorException x) 
+		else
 		{
-		    // IOException can never be thrown by the iteration.
-		    // In this snippet, it can only be thrown by newDirectoryStream.
-		    System.err.println(x);
+			if( !dir.toFile().exists() )
+			{
+				System.out.println( "Directory 'wc_input' does not exist. Exiting program." );
+				System.exit(0);
+			}
+			else
+			{
+				System.out.println( "File 'wc_input' is not a directory. Exiting program." );
+				System.exit(0);
+			}
 		}
-				
-		 //after all files are read and counted on the list:
-		//save the output to file
-		saveOutput();
-		//File dir = new File( "wc_input" );		
+	}		
 		
-//		if( dir.exists() && dir.isDirectory() )
-//		{
-//			File[] input = dir.listFiles();
-//			
-//			if( input.length == 0 ) //if there are no files in this directory
-//			{
-//				//inform user there are no files to count
-//				System.out.println("no input files!");
-//				
-//				//exit the program
-//				System.exit(0);
-//			}
-//		}	
-//		else //in the case of a bad input, inform the user of what the problem is.
-//		{
-//			//if it exists then it's not a directory
-//			if( dir.exists() )
-//			{
-//				System.out.println( "File is not a directory." );
-//				System.exit(0);
-//			}
-//			else //otherwise is doesn't exist at all.
-//			{
-//				System.out.println( "File does not exist." );
-//				System.exit(0);
-//
-//			}
-//			
-//		}
 	
-		
-	}
 	
 	/**
 	 * Start. Takes no command line arguments.
@@ -146,11 +114,8 @@ public class WordCount
 	 */
 	public static void main( String[] args )
 	{
-		//Files.deleteIfExists( Path.get)
-		
-		WordCount wc = new WordCount();
-		
-		wc.readInput();
+				
+		new WordCount();
 	}
 	
 	/**
@@ -165,117 +130,50 @@ public class WordCount
 				Path dir = Files.createDirectory( Paths.get( "wc_output" ) );
 			}
 			
-			Files.deleteIfExists( Paths.get( "wc_output/wc_result.txt" ) );
+			//preparing to write to file
+			Path output = Paths.get( "wc_output/wc_result.txt" );
 			
-			Path output = Files.createFile( Paths.get( "wc_output/wc_result.txt" ) );
-			
+			//we're not trying to delete a directory so it will not throw the associated exceptions
+			//deleted the file if it exists to create a new version of the file.
+			Files.deleteIfExists( output );
+			//create the new version of the file to write on.
+			Files.createFile( output );
+			//use UTF-8 charset to ensure the UnmappableCharacterException is not thrown.
+			//all source files' character sets use UTF-8 encoding or a subset thereof
 			Charset charset = Charset.forName("UTF-8");
-			
+			//try to create a bufferedWriter
 			try ( BufferedWriter writer = Files.newBufferedWriter( output, charset ) ) 
 			{
+				//get the iterator from the frequency list
 				Iterator<String> it = list.iterator();
 				
 				while( it.hasNext() )
-				//Set<String> keys = list.keys();
-				//for( String key : keys )
 				{
+					//get the next key
 					String key = it.next();
-					
+					//build the line to write with correct formatting.
 					String s = key + "\t" + Integer.toString( list.getVal( key ) );
-					
-					writer.write( s );//, 0, s.length());
-					
+					//write the line
+					writer.write( s );
+					//get a new line
 					writer.newLine();
 				}
-				
-				
+				//finish writing to file.
+				writer.close();
 			
 			} 
-			catch (UnmappableCharacterException x)
+			catch ( UnmappableCharacterException x )
 			{
 			    System.err.format("IOException: %s%n", x);
-			    //System.out.println( s );
 			    //if( x.getCause().equals(UnmappableCharacterException))
 			    x.printStackTrace();
 			}
 		} 
 		catch (IOException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		
-		
-		
-		/*//make directory "wc_output"
-		File dir = new File("wc_output");
-		
-		//if there is a file already named "wc_output"
-		if( dir.exists() && !dir.isDirectory() )
-		{
-			//delete that file to "old_wc_output"
-			dir.delete();
-			System.out.println("Deleting old file named wc_output to make room for directory of the same name.");
-			dir.mkdir();
-		}
-		else if ( dir.exists() && dir.isDirectory() )
-		{
-			System.out.println("deleting any child files so only desired output file is inside.");
 			
-			File[] children = dir.listFiles();
-			System.out.println( "# of child files: " + children.length );
-			for( int i = 0; i < children.length; i++ )
-			{
-				if( children[i].isDirectory() )
-				{
-					deleteChildren( children[i] );
-				}
-				System.out.println( "deleting file " + children[i].getName() );
-
-				children[i].delete();
-			}
-		}
-		else //else dir doesn't exist as a directory or a file.
-		{
-			System.out.println("creating new directory for output");
-			dir.mkdir(); //so we make it
-		}	
-		
-		//take the String version of the list and save it to file as "wc_result.txt" in this directory. 
-		//there will be no overlapping name issues at this point since we have ensured
-		//that the directory "wc_output" is empty.
-		FileWriter output;
-		try 
-		{
-			output = new FileWriter( dir.getName() + "/wc_result.txt" );
-			output.write( list.toString() );
-
-		}
-		catch (IOException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-	}
-	
-	/**
-	 * Recursive file to get rid of children if there is a directory child.
-	 * @param file
-	 */
-	private void deleteChildren( File file )
-	{
-		File[] children = file.listFiles();
-		
-		for( int i = 0; i < children.length; i++ )
-		{
-			if( children[i].isDirectory() && children[i].listFiles().length > 0 )
-			{
-				deleteChildren( children[i] );
-			}
-			System.out.println( "deleting file " + children[i].getName() );
-			//delete the file once any existing children are deleted.	
-			children[i].delete();
-			
+			System.out.println("IOException on creating output directory/file.");
 		}
 	}
 }
